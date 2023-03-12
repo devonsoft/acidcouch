@@ -1,0 +1,6 @@
+.vscode
+.cache
+dist
+node_modules
+mongoose-free-6.5.exe
+static
