@@ -71,7 +71,7 @@ module.exports = (env, argv) => {
         plugins: [
             // Copy our static assets to the final build
             new CopyPlugin({
-                patterns: [{ from: 'assets' }],
+                patterns: [{ from: 'assets', to: 'assets' }, { from: 'pixi.min.js' }, { from: 'pixi-sound.js' }],
             }),
 
             // Make an index.html from the template

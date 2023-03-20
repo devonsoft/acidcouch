@@ -1,9 +1,4 @@
-// Import the PIXI definitions
-import type * as PIXI from '@pixi/sound';
-
-// Export it as a namespace
-export as namespace PIXI;
-// Expose that namespace globally, to match the global
-// variable pixi.js creates
-export = PIXI;
+import type * as PIXI_SOUND from '@pixi/sound';
+export as namespace PIXI_SOUND;
+export = PIXI_SOUND;
 

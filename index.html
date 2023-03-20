@@ -5,8 +5,9 @@
   <title>Acid Couch</title>
   <script language="javascript" type="text/javascript" src="pixi.min.js"></script>
   <script language="javascript" type="text/javascript" src="pixi-sound.js"></script>
+  <script language="javascript" type="text/javascript">class PIXI_SOUND {}; PIXI_SOUND.sound = PIXI.sound; PIXI_SOUND.Sound = PIXI.sound.Sound; PIXI_SOUND.SoundLibrary = PIXI.sound.SoundLibrary; PIXI_SOUND.SoundSprite = PIXI.sound.SoundSprite;</script>
   <style> 
-  body {padding: 0; margin: 0; background-color: black; text-align: center;} 
+  body {padding: 0; margin: 0; background-color: black; text-align: center; position: absolute; top: 50%; left: 50%; -ms-transform: translate(-50%, -50%); transform: translate(-50%, -50%);} 
   </style>
 </head>
 <body>
