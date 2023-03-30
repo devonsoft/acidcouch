@@ -1,4 +1,4 @@
-const ASSET_MANIFEST = {
+/*const ASSET_MANIFEST = {
   bundles: [{
     name: "MenuScene",
     assets: [
@@ -21,7 +21,31 @@ const ASSET_MANIFEST = {
           },
       ],
   }],
-};
+};*/
+
+const atlasData = {
+	frames: {
+		enemy1: {
+			frame: { x: 0, y:0, w:32, h:32 },
+			sourceSize: { w: 32, h: 32 },
+			spriteSourceSize: { x: 0, y: 0, w: 32, h: 32 }
+		},
+		enemy2: {
+			frame: { x: 32, y:0, w:32, h:32 },
+			sourceSize: { w: 32, h: 32 },
+			spriteSourceSize: { x: 0, y: 0, w: 32, h: 32 }
+		},
+	},
+	meta: {
+		image: 'images/spritesheet.png',
+		format: 'RGBA8888',
+		size: { w: 128, h: 32 },
+		scale: 1
+	},
+	animations: {
+		enemy: ['enemy1','enemy2'] //array of frames by name
+	}
+}
 //let isFirefox = typeof InstallTrigger !== 'undefined'
 
 class The
@@ -33,7 +57,8 @@ class The
     MENU: 0,
     PLAY: 1,
     GAMEOVER: 2,
-    WIN: 3
+    WIN: 3,
+    COUNT: 4
   }
 
   sceneState = 0;
@@ -45,10 +70,19 @@ class The
   scale = 1.0;
   width = 320;//DPI(800);;//1920;//DPI(800);
   height = 240;//DPI(450);;//1080;//DPI(600);
-  /** @type {PIXI.IRenderer<PIXI.ICanvas>} */
-  renderer;
+
+  //renderer;
   /** @type {PIXI.Application<PIXI.ICanvas>} */
+  //app = new PIXI.Application({width: 320, height: 240, backgroundColor: 0xb4a912, antialias: false});
+  /** @type {PIXI.IRenderer<PIXI.ICanvas>} */
+  /*renderer = PIXI.autoDetectRenderer({
+      width: 320,
+      height: 240,
+      resolution: window.devicePixelRatio || 1
+    });*/
+
   app;// = null;
+  renderer;
   music = undefined;
   menuAssets = null;
   
@@ -89,8 +123,8 @@ class The
       TilesImg4: "assets/images/MountainTopTiles.png",
       TopLeftImg: "assets/images/SeizureBgTopLeft.png",
       TopRightImg: "assets/images/SeizureBgTopRight.png",
-      BottomLeftImg: "assets/images/SeizureBgBottomleft.png",
-      BottomRightImg: "assets/images/SeizureBgBottomRight.png",
+      //BottomLeftImg: "assets/images/SeizureBgBottomleft.png",
+      //BottomRightImg: "assets/images/SeizureBgBottomRight.png",
       EyePokeSound: "assets/sounds/Eye Poke.mp3"
       //MonsterSound: "assets/sounds/Monster Dies.mp3"
     });
@@ -380,7 +414,7 @@ class ClickEye extends PIXI.Container {
   /** @type {Number} */
   dilation = 1;
    /** @type {PIXI.Sprite} */
-  eye;
+  eye = new PIXI.Sprite();
    /** @type {PIXI.Point} */
   scrollFactor;
   
@@ -390,21 +424,17 @@ class ClickEye extends PIXI.Container {
     this.eye.position.x = 50;
     this.eye.position.y = 58;
     this.scrollFactor = new PIXI.Point(0, 0);
-    this.eye.scrollFactor = this.scrollFactor;
+    //this.eye.scrollFactor = this.scrollFactor;
 
     PIXI.Assets.load("NormalMusic");
 
-    this.eye.on("pointerdown", function() { 
+    this.eye.on("pointerdown", function(e) { 
       this._isTripping = false;
       the.playSound("EyePokeSound");
       if (this.dilation <= 0)
         the.playMusic("NormalMusic");
       this.dilation += this._dilateSpeed * (the.app.ticker.deltaTime / 60.0);	
     });
-    //this.eye.alpha = 0.65;
-    //this._eyeBrow.alpha = 0.4;
-    //this._eyePupil.alpha = 0.65;
-    //this._eyeHighlight.alpha = 0.65;
     
     this._brow = new PIXI.Sprite(PIXI.Assets.get("ClickEyeBrowImg"));
     this._brow.x = this.eye.x - 2;
@@ -458,7 +488,6 @@ class ClickEye extends PIXI.Container {
       member.x += (this.x - this._last.x);
       member.y += (this.y - this._last.y);
     }*/
-    //super.update();
   }
   
   /** @type {Boolean} */
@@ -477,7 +506,83 @@ class ClickEye extends PIXI.Container {
   _highlight;
 }
 
+class DragEye extends PIXI.Container {
+  isDragging = false;
+  eye = new PIXI.Sprite();
+  brow = new PIXI.Sprite();
+  scene;
+  
+  constructor(scene, clickEye) {
+    super();
+    this._clickEye = clickEye;
+    //FlxSprite = new FlxSprite(820, 7840);
+    this.eye = PIXI.Sprite.from("DragEyeImg");//, true, false, 75, 43);
+    //this.eye.alpha = 0.65;
+    
+    const baseTexture = PIXI.BaseTexture.from("DragEyeBrowImg");
+    const fw = 92;
+    const fh = 71;
+    const frames = [];
+    for (let x = 0; x < baseTexture.width; x += fw) {
+      frames.push(new PIXI.Texture(baseTexture, new PIXI.Rectangle(x,0,fw,fh)));
+    }
+    this.brow = new PIXI.AnimatedSprite(frames);//, true, false, 92, 71);
+    //this._eyeBrow.alpha = 0.4;
+    this.brow.x = this.eye.x - 29;
+    this.brow.y = this.eye.y - 27;
+    this.addChild(this.eye);
+    this.addChild(this.brow);
+    
+    the.scenes[the.STATE.PLAY].on("pointerdown", function() {
+      this.isDragging = true;
+      this.eye.frame = 1;
+      the.playMusic("MountainMusic");
+    });
 
+    the.scenes[the.STATE.PLAY].on("pointerup", function()  {
+      this.isDragging = false;
+      this.eye.frame = 0;
+      if (this._clickEye.dilation > 0)
+        the.playMusic("NormalMusic");
+    });
+
+    the.scenes[the.STATE.PLAY].on("pointermove", function(event)  {
+      if (this.isDragging) {
+        const eyeScreen= this.eye.getGlobalPosition();
+        const mouseVelocity = new PIXI.Point(
+          event.globalX - this._lastMousePosition.x,
+          event.globalY - this._lastMousePosition.y);
+        eyeScreen.x += mouseVelocity.x;
+        eyeScreen.y += mouseVelocity.y;
+        const bleed = new PIXI.Point(
+          this.eye.width - 7, this.eye.height - 5);
+        if (eyeScreen.x > -bleed.x && 
+          eyeScreen.x < (the.width - this.eye.width) + bleed.x)
+        {
+          this.x += mouseVelocity.x;
+        }
+        if (eyeScreen.y > -bleed.y && 
+          eyeScreen.y < (the.height - this.eye.height) + bleed.y)
+        {
+          this.y += mouseVelocity.y;
+        }
+        const finalVelocity= new PIXI.Point(
+          (this.x - this._last.x),
+          (this.y - this._last.y));
+        /*for each(var member:FlxObject in this.members) {
+          member.x += finalVelocity.x;
+          member.y += finalVelocity.y;
+        }*/
+        event.x
+        this._lastMousePosition.x = event.globalX;
+        this._lastMousePosition.y = event.globalY;
+      }
+    });
+  }
+
+  _lastMousePosition;
+  _clickEye;
+}
 
 class GameOverScene extends PIXI.Container 
 {
@@ -574,7 +679,7 @@ function main()
     });
   the.canvas = the.app.view;
   the.scaleToWindow();
-  document.body.appendChild(the.app.view);
+  //document.body.appendChild(the.app.view);
   PIXI.BaseTexture.defaultOptions.scaleMode = PIXI.SCALE_MODES.NEAREST;
   //the.app.stop();
   the.app.resizeTo = the.canvas;
